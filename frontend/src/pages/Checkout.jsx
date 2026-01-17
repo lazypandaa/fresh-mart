@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useCart } from '../context/CartContext'
+import { tracker } from '../utils/eventTracker'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
@@ -73,6 +74,9 @@ export function Checkout() {
     // Update total spent
     const totalSpent = parseFloat(localStorage.getItem('total_spent') || '0')
     localStorage.setItem('total_spent', (totalSpent + cartTotal).toFixed(2))
+    
+    // Track purchase
+    tracker.trackPurchase(order)
     
     // Simulate order processing
     setTimeout(() => {

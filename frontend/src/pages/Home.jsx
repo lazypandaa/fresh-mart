@@ -3,6 +3,7 @@ import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { tracker } from '../utils/eventTracker'
 import { useState, useEffect } from 'react'
 
 export function Home() {
@@ -198,7 +199,10 @@ export function Home() {
                           <span className="text-sm font-semibold">4.5</span>
                         </div>
                       </div>
-                      <Button className="w-full group-hover:bg-black transition-colors" onClick={() => addToCart(product)}>Add to Cart</Button>
+                      <Button className="w-full group-hover:bg-black transition-colors" onClick={(e) => {
+                        e.stopPropagation()
+                        addToCart(product)
+                      }}>Add to Cart</Button>
                     </div>
                   </CardContent>
                 </Card>

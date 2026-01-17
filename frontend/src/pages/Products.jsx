@@ -4,6 +4,7 @@ import { Card, CardContent } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Star, ShoppingCart } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { tracker } from '../utils/eventTracker'
 
 export function Products() {
   const [searchParams] = useSearchParams()
@@ -26,6 +27,17 @@ export function Products() {
       fetchProducts(selectedDepartment)
     }
   }, [selectedDepartment, searchParams])
+
+  useEffect(() => {
+    // Track product views when products are loaded
+    products.forEach(product => {
+      tracker.trackProductView(product.id, {
+        name: product.name,
+        department: product.department,
+        price: product.price
+      })
+    })
+  }, [products])
 
   const fetchDepartments = async () => {
     try {
@@ -102,7 +114,8 @@ export function Products() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
-              <Card key={product.id} className="group cursor-pointer hover:shadow-2xl transition-all hover:-translate-y-2 border-2 hover:border-black overflow-hidden">
+              <Card key={product.id} className="group cursor-pointer hover:shadow-2xl transition-all hover:-translate-y-2 border-2 hover:border-black overflow-hidden"
+                onClick={() => tracker.trackClick(product.id, 'product_grid')}>
                 <CardContent className="p-0">
                   <div className="relative bg-gray-100 h-64 overflow-hidden">
                     <img
@@ -129,7 +142,10 @@ export function Products() {
                     </div>
                     <Button 
                       className="w-full group-hover:bg-black transition-colors"
-                      onClick={() => handleAddToCart(product)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleAddToCart(product)
+                      }}
                     >
                       <ShoppingCart className="h-4 w-4 mr-2" />
                       Add to Cart

@@ -57,3 +57,8 @@ coverage/
 # OS
 Thumbs.db
 .DS_Store
+
+# Secret files
+
+# Architecture documentation
+ARCHITECTURE.html

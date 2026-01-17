@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { tracker } from '../utils/eventTracker'
 
 const CartContext = createContext()
 
@@ -30,6 +31,7 @@ export function CartProvider({ children }) {
       }
       
       localStorage.setItem('cart', JSON.stringify(newCart))
+      tracker.trackCartAdd(product.id, { name: product.name, price: product.price })
       return newCart
     })
 
@@ -42,6 +44,7 @@ export function CartProvider({ children }) {
     setCart((prevCart) => {
       const newCart = prevCart.filter((item) => item.id !== productId)
       localStorage.setItem('cart', JSON.stringify(newCart))
+      tracker.trackCartRemove(productId)
       return newCart
     })
   }
