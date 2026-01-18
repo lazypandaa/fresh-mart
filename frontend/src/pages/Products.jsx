@@ -123,7 +123,7 @@ export function Products() {
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/400x400?text=No+Image'
+                        e.target.src = 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop&crop=center'
                       }}
                     />
                     <div className="absolute top-3 right-3 bg-black text-white text-xs font-bold px-3 py-1 rounded-full">
