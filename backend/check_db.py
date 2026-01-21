@@ -15,12 +15,12 @@ async def check_database():
     print(f"Collections: {collections}\n")
     
     # Check products collection
-    if "products" in collections:
-        count = await db.products.count_documents({})
+    if "productsnew" in collections:
+        count = await db.productsnew.count_documents({})
         print(f"Products count: {count}")
         
         # Get sample product
-        sample = await db.products.find_one()
+        sample = await db.productsnew.find_one()
         if sample:
             print("\nSample product structure:")
             for key, value in sample.items():

@@ -35,10 +35,25 @@ export function Profile() {
 
     setFormData({ name, email, phone, address, city, zipCode })
     
-    const savedOrders = JSON.parse(localStorage.getItem('orders') || '[]')
-    setOrders(savedOrders)
-    setTotalSpent(parseFloat(localStorage.getItem('total_spent') || '0'))
+    // Fetch orders from database
+    if (email) {
+      fetchOrders(email)
+    }
   }, [navigate])
+
+  const fetchOrders = async (email) => {
+    try {
+      const response = await fetch(`http://localhost:8000/api/orders/${email}`)
+      const data = await response.json()
+      setOrders(data.orders || [])
+      
+      // Calculate total spent
+      const total = data.orders.reduce((sum, order) => sum + order.total, 0)
+      setTotalSpent(total)
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    }
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -263,7 +278,7 @@ export function Profile() {
                             <div>
                               <p className="font-semibold">Order #{order.id.slice(-8)}</p>
                               <p className="text-sm text-gray-600">
-                                {new Date(order.date).toLocaleDateString('en-US', {
+                                {new Date(order.created_at).toLocaleDateString('en-US', {
                                   year: 'numeric',
                                   month: 'long',
                                   day: 'numeric'

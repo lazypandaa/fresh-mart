@@ -32,10 +32,10 @@ export function Header() {
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
-      fetch(`http://localhost:8000/api/products?search=${searchQuery}`)
+      fetch(`http://localhost:8000/api/products?search=${searchQuery}&limit=5`)
         .then(res => res.json())
         .then(data => {
-          setSuggestions(data.slice(0, 5))
+          setSuggestions(data.products || data.slice(0, 5))
           setShowSuggestions(true)
         })
         .catch(() => setSuggestions([]))

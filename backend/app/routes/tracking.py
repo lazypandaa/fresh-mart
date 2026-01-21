@@ -48,13 +48,13 @@ async def get_recommendations(user_id: str, limit: int = 5):
     if viewed_products:
         from bson import ObjectId
         try:
-            viewed_product_docs = await db.products.find(
+            viewed_product_docs = await db.productsnew.find(
                 {"_id": {"$in": [ObjectId(pid) for pid in viewed_products[-5:]]}}
             ).to_list(5)
             
             departments = [p["department"] for p in viewed_product_docs]
             
-            similar_products = await db.products.find(
+            similar_products = await db.productsnew.find(
                 {"department": {"$in": departments}, "_id": {"$nin": [ObjectId(pid) for pid in viewed_products]}}
             ).limit(limit).to_list(limit)
             
