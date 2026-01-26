@@ -12,6 +12,7 @@ import { Cart } from './pages/Cart'
 import { Checkout } from './pages/Checkout'
 import { OrderSuccess } from './pages/OrderSuccess'
 import { Profile } from './pages/Profile'
+import { Deals } from './pages/Deals'
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/order-success" element={<OrderSuccess />} />
+              <Route path="/deals" element={<Deals />} />
               <Route path="/profile" element={<Profile />} />
             </Routes>
           </main>
