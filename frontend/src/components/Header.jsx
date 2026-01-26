@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from './ui/Button'
 import { useState, useEffect, useRef } from 'react'
 import { useCart } from '../context/CartContext'
+import { tracker } from '../utils/eventTracker'
 
 export function Header() {
   const navigate = useNavigate()
@@ -31,10 +32,10 @@ export function Header() {
 
   useEffect(() => {
     if (searchQuery.trim().length > 0) {
-      fetch(`http://localhost:8000/api/products?search=${searchQuery}`)
+      fetch(`http://localhost:8000/api/products?search=${searchQuery}&limit=5`)
         .then(res => res.json())
         .then(data => {
-          setSuggestions(data.slice(0, 5))
+          setSuggestions(data.products || data.slice(0, 5))
           setShowSuggestions(true)
         })
         .catch(() => setSuggestions([]))
@@ -47,12 +48,14 @@ export function Header() {
   const handleSearch = (e) => {
     e.preventDefault()
     if (searchQuery.trim()) {
+      tracker.trackSearch(searchQuery)
       navigate(`/products?search=${searchQuery}`)
       setShowSuggestions(false)
     }
   }
 
   const handleSuggestionClick = (product) => {
+    tracker.trackClick(product.product_id, 'search_suggestion')
     setSearchQuery('')
     setShowSuggestions(false)
     navigate(`/products?search=${product.name}`)
