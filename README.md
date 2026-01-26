@@ -8,6 +8,7 @@ A modern full-stack e-commerce platform for fresh groceries with React frontend 
 freshmart_q/
 ├── frontend/          # React + Vite + Tailwind CSS
 └── backend/           # FastAPI + MongoDB
+└── microservices/     # Email Service
 ```
 
 ## Tech Stack
@@ -24,6 +25,13 @@ freshmart_q/
 - MongoDB (Motor async driver)
 - JWT Authentication
 - Bcrypt password hashing
+
+### Microservices
+- Node.js
+- Express.js
+- Bun (js runtime)
+- Nodemailer
+
 
 ## Setup Instructions
 
@@ -73,6 +81,23 @@ npm run dev
 ```
 
 4. App will be available at: http://localhost:5174
+
+### Microservice Setup
+
+1. Navigate to microservices directory:
+```bash
+cd microservices
+```
+
+2. Navigate to email and install dependencies:
+```bash
+cd email && npm install
+```
+
+3. Start Email Service
+```bash
+npm start
+```
 
 ## API Endpoints
 
