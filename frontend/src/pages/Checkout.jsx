@@ -26,22 +26,37 @@ export function Checkout() {
 
   useEffect(() => {
     // Load user profile data from localStorage
-    const name = localStorage.getItem('user_name') || ''
-    const email = localStorage.getItem('user_email') || ''
-    const phone = localStorage.getItem('user_phone') || ''
-    const address = localStorage.getItem('user_address') || ''
-    const city = localStorage.getItem('user_city') || ''
-    const zipCode = localStorage.getItem('user_zipCode') || ''
+    const isGuest = localStorage.getItem('isGuest')
+    const guestUser = JSON.parse(localStorage.getItem('guestUser') || 'null')
+    
+    if (isGuest && guestUser) {
+      setFormData(prev => ({
+        ...prev,
+        name: guestUser.name,
+        email: guestUser.email,
+        phone: '',
+        address: '',
+        city: '',
+        zipCode: ''
+      }))
+    } else {
+      const name = localStorage.getItem('user_name') || ''
+      const email = localStorage.getItem('user_email') || ''
+      const phone = localStorage.getItem('user_phone') || ''
+      const address = localStorage.getItem('user_address') || ''
+      const city = localStorage.getItem('user_city') || ''
+      const zipCode = localStorage.getItem('user_zipCode') || ''
 
-    setFormData(prev => ({
-      ...prev,
-      name,
-      email,
-      phone,
-      address,
-      city,
-      zipCode
-    }))
+      setFormData(prev => ({
+        ...prev,
+        name,
+        email,
+        phone,
+        address,
+        city,
+        zipCode
+      }))
+    }
   }, [])
 
   const handleChange = (e) => {

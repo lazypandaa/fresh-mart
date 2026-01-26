@@ -5,6 +5,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { tracker } from '../utils/eventTracker'
 import { useState, useEffect } from 'react'
+import { GuestLogin } from '../components/GuestLogin'
 
 export function Home() {
   const { addToCart } = useCart()
@@ -12,6 +13,7 @@ export function Home() {
   const [products, setProducts] = useState([])
   const [departments, setDepartments] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showGuestLogin, setShowGuestLogin] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -82,7 +84,7 @@ export function Home() {
                 Login for Better Recommendations
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button size="lg" variant="outline" className="border-2">
+              <Button size="lg" variant="outline" className="border-2" onClick={() => setShowGuestLogin(true)}>
                 Guest
               </Button>
             </div>
@@ -233,6 +235,10 @@ export function Home() {
           </div>
         </div>
       </section>
+      
+      {showGuestLogin && (
+        <GuestLogin onClose={() => setShowGuestLogin(false)} />
+      )}
     </div>
   )
 }

@@ -8,6 +8,9 @@ class UserCreate(BaseModel):
     phone: str
     password: str
 
+class GuestCreate(BaseModel):
+    name: str
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str

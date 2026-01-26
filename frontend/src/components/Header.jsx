@@ -17,7 +17,8 @@ export function Header() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    setIsLoggedIn(!!token)
+    const isGuest = localStorage.getItem('isGuest')
+    setIsLoggedIn(!!token || !!isGuest)
   }, [])
 
   useEffect(() => {

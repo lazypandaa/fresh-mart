@@ -3,17 +3,27 @@ const API_BASE = 'http://localhost:8000/api'
 class EventTracker {
   constructor() {
     this.sessionId = this.generateSessionId()
-    this.userId = this.getUserId()
     this.cartState = { items: 0, value: 0 }
+    this.updateUserId()
   }
 
   generateSessionId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2)
   }
 
+  updateUserId() {
+    const guestUser = JSON.parse(localStorage.getItem('guestUser') || 'null')
+    if (guestUser) {
+      this.userId = guestUser.guest_id || guestUser.email.split('@')[0] // Use guest_0002 instead of guest_0002@guest.com
+    } else {
+      const email = localStorage.getItem('user_email')
+      this.userId = email || 'anonymous_' + this.sessionId
+    }
+  }
+
   getUserId() {
-    const email = localStorage.getItem('user_email')
-    return email || 'anonymous_' + this.sessionId
+    this.updateUserId() // Always get fresh user ID
+    return this.userId
   }
 
   updateCartState() {
@@ -24,11 +34,14 @@ class EventTracker {
 
   async trackEvent(eventType, productId = null, data = {}) {
     try {
+      const userId = this.getUserId()
+      console.log(`Tracking event: ${eventType} for user: ${userId}`)
+      
       await fetch(`${API_BASE}/events/track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: this.userId,
+          user_id: userId,
           session_id: this.sessionId,
           event_type: eventType,
           product_id: productId,
@@ -43,11 +56,14 @@ class EventTracker {
   async trackCartEvent(action, productId, quantity = 1) {
     try {
       this.updateCartState()
+      const userId = this.getUserId()
+      console.log(`Tracking cart event: ${action} for user: ${userId}`)
+      
       await fetch(`${API_BASE}/events/cart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: this.userId,
+          user_id: userId,
           session_id: this.sessionId,
           action: action,
           product_id: productId,

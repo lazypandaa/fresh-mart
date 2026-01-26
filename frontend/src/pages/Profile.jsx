@@ -21,23 +21,37 @@ export function Profile() {
 
   useEffect(() => {
     const token = localStorage.getItem('token')
-    if (!token) {
+    const isGuest = localStorage.getItem('isGuest')
+    const guestUser = JSON.parse(localStorage.getItem('guestUser') || 'null')
+    
+    if (!token && !isGuest) {
       navigate('/login')
       return
     }
 
-    const email = localStorage.getItem('user_email')
-    const name = localStorage.getItem('user_name') || 'User'
-    const phone = localStorage.getItem('user_phone') || ''
-    const address = localStorage.getItem('user_address') || ''
-    const city = localStorage.getItem('user_city') || ''
-    const zipCode = localStorage.getItem('user_zipCode') || ''
+    if (isGuest && guestUser) {
+      setFormData({
+        name: guestUser.name,
+        email: guestUser.email,
+        phone: '',
+        address: '',
+        city: '',
+        zipCode: ''
+      })
+      fetchOrders(guestUser.email)
+    } else {
+      const email = localStorage.getItem('user_email')
+      const name = localStorage.getItem('user_name') || 'User'
+      const phone = localStorage.getItem('user_phone') || ''
+      const address = localStorage.getItem('user_address') || ''
+      const city = localStorage.getItem('user_city') || ''
+      const zipCode = localStorage.getItem('user_zipCode') || ''
 
-    setFormData({ name, email, phone, address, city, zipCode })
-    
-    // Fetch orders from database
-    if (email) {
-      fetchOrders(email)
+      setFormData({ name, email, phone, address, city, zipCode })
+      
+      if (email) {
+        fetchOrders(email)
+      }
     }
   }, [navigate])
 
@@ -69,13 +83,20 @@ export function Profile() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user_email')
-    localStorage.removeItem('user_name')
-    localStorage.removeItem('user_phone')
-    localStorage.removeItem('user_address')
-    localStorage.removeItem('user_city')
-    localStorage.removeItem('user_zipCode')
+    const isGuest = localStorage.getItem('isGuest')
+    
+    if (isGuest) {
+      localStorage.removeItem('isGuest')
+      localStorage.removeItem('guestUser')
+    } else {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user_email')
+      localStorage.removeItem('user_name')
+      localStorage.removeItem('user_phone')
+      localStorage.removeItem('user_address')
+      localStorage.removeItem('user_city')
+      localStorage.removeItem('user_zipCode')
+    }
     navigate('/login')
   }
 
