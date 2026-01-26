@@ -1,12 +1,14 @@
 import { ShoppingBag, Truck, Shield, Clock, ArrowRight, Star, TrendingUp } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Card, CardContent } from '../components/ui/Card'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
+import { tracker } from '../utils/eventTracker'
 import { useState, useEffect } from 'react'
 
 export function Home() {
   const { addToCart } = useCart()
+  const navigate = useNavigate()
   const [products, setProducts] = useState([])
   const [departments, setDepartments] = useState([])
   const [loading, setLoading] = useState(true)
@@ -20,7 +22,7 @@ export function Home() {
       // Fetch products
       const productsRes = await fetch('http://localhost:8000/api/products?limit=8')
       const productsData = await productsRes.json()
-      setProducts(productsData)
+      setProducts(productsData.products || productsData)
 
       // Fetch departments
       const deptRes = await fetch('http://localhost:8000/api/departments')
@@ -34,7 +36,7 @@ export function Home() {
   }
 
   const categories = departments.map((dept, idx) => ({
-    name: dept,
+    name: dept.name,
     image: ['🥬', '🥛', '🥩', '🍞', '🥤', '🍿'][idx] || '🛒',
     count: `${Math.floor(Math.random() * 50 + 20)}+ items`,
     color: ['bg-green-50', 'bg-blue-50', 'bg-red-50', 'bg-yellow-50', 'bg-purple-50', 'bg-orange-50'][idx] || 'bg-gray-50'
@@ -76,12 +78,12 @@ export function Home() {
               Quality guaranteed with same-day delivery.
             </p>
             <div className="flex gap-4">
-              <Button size="lg" className="group">
-                Shop Now
+              <Button size="lg" className="group" onClick={() => navigate('/login')}>
+                Login for Better Recommendations
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
               <Button size="lg" variant="outline" className="border-2">
-                View Deals
+                Guest
               </Button>
             </div>
           </div>
@@ -198,7 +200,10 @@ export function Home() {
                           <span className="text-sm font-semibold">4.5</span>
                         </div>
                       </div>
-                      <Button className="w-full group-hover:bg-black transition-colors" onClick={() => addToCart(product)}>Add to Cart</Button>
+                      <Button className="w-full group-hover:bg-black transition-colors" onClick={(e) => {
+                        e.stopPropagation()
+                        addToCart(product)
+                      }}>Add to Cart</Button>
                     </div>
                   </CardContent>
                 </Card>

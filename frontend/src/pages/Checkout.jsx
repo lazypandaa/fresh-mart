@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useCart } from '../context/CartContext'
+import { tracker } from '../utils/eventTracker'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
-import { CreditCard, MapPin, User, Mail, Phone } from 'lucide-react'
+import { CreditCard, MapPin, User, Mail, Phone, CheckCircle } from 'lucide-react'
 
 export function Checkout() {
   const { cart, cartTotal, clearCart } = useCart()
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -50,35 +52,105 @@ export function Checkout() {
     e.preventDefault()
     setLoading(true)
     
-    // Create order object
-    const order = {
-      id: Date.now().toString(),
-      items: cart,
-      total: cartTotal,
-      date: new Date().toISOString(),
-      status: 'Completed',
-      shippingAddress: {
-        name: formData.name,
-        address: formData.address,
-        city: formData.city,
-        zipCode: formData.zipCode
+    try {
+      // Create order object for API
+      const orderData = {
+        user_email: formData.email,
+        items: cart.map(item => ({
+          product_id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          department: item.department,
+          image_url: item.image_url
+        })),
+        total: cartTotal,
+        shipping_address: {
+          name: formData.name,
+          address: formData.address,
+          city: formData.city,
+          zipCode: formData.zipCode
+        }
       }
+      
+      // Save order to database
+      const response = await fetch('http://localhost:8000/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      })
+      
+      if (response.ok) {
+        const savedOrder = await response.json()
+        
+        // Track purchase
+        tracker.trackPurchase(savedOrder)
+        
+        // Play success sound
+        try {
+          const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT')
+          audio.play().catch(() => {})
+        } catch (e) {}
+        
+        // Show success animation
+        setShowSuccess(true)
+        
+        // Clear cart and redirect after animation
+        setTimeout(() => {
+          clearCart()
+          navigate('/products')
+        }, 4000)
+      } else {
+        throw new Error('Failed to create order')
+      }
+    } catch (error) {
+      console.error('Order creation failed:', error)
+      alert('Failed to place order. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    
-    // Save order to localStorage
-    const existingOrders = JSON.parse(localStorage.getItem('orders') || '[]')
-    existingOrders.unshift(order)
-    localStorage.setItem('orders', JSON.stringify(existingOrders))
-    
-    // Update total spent
-    const totalSpent = parseFloat(localStorage.getItem('total_spent') || '0')
-    localStorage.setItem('total_spent', (totalSpent + cartTotal).toFixed(2))
-    
-    // Simulate order processing
-    setTimeout(() => {
-      clearCart()
-      navigate('/order-success')
-    }, 2000)
+  }
+
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+        <div className="text-center max-w-md mx-4">
+          <div className="relative mb-8">
+            <div className="w-32 h-32 bg-green-50 rounded-full flex items-center justify-center mx-auto animate-pulse" style={{animationDuration: '2s'}}>
+              <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center animate-pulse" style={{animationDuration: '1.5s'}}>
+                <CheckCircle className="h-16 w-16 text-green-600" style={{animation: 'checkmark 1s ease-in-out'}} />
+              </div>
+            </div>
+            <div className="absolute inset-0 w-32 h-32 border-4 border-green-200 rounded-full mx-auto" style={{animation: 'ripple 2s ease-out infinite'}}></div>
+            <div className="absolute inset-0 w-32 h-32 border-4 border-green-100 rounded-full mx-auto" style={{animation: 'ripple 2s ease-out infinite 0.5s'}}></div>
+          </div>
+          <h2 className="text-4xl font-bold text-green-600 mb-4" style={{animation: 'fadeInUp 1s ease-out 0.5s both'}}>Order Placed!</h2>
+          <p className="text-gray-600 mb-6 text-lg" style={{animation: 'fadeInUp 1s ease-out 0.8s both'}}>Your order has been successfully placed and will be delivered soon</p>
+          <div className="flex justify-center mb-4" style={{animation: 'fadeInUp 1s ease-out 1.1s both'}}>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600" style={{animationDuration: '1s'}}></div>
+          </div>
+          <p className="text-sm text-gray-500" style={{animation: 'fadeInUp 1s ease-out 1.4s both'}}>Redirecting to products...</p>
+        </div>
+        
+        <style jsx>{`
+          @keyframes checkmark {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(180deg); opacity: 1; }
+            100% { transform: scale(1) rotate(360deg); opacity: 1; }
+          }
+          
+          @keyframes ripple {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+          }
+          
+          @keyframes fadeInUp {
+            0% { transform: translateY(30px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+          }
+        `}</style>
+      </div>
+    )
   }
 
   if (cart.length === 0) {

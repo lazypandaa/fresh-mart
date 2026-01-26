@@ -52,11 +52,27 @@ export function Signup() {
       const data = await response.json()
 
       if (response.ok) {
-        navigate('/login')
-      } else {
+        try {
+          await fetch('http://localhost:3001/api/email/registration', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: formData.name,
+              email: formData.email,
+            }),
+          });
+        } catch (err) {
+          console.error('Failed to send registration email', err);
+        }
+      
+        navigate('/login');
+      }
+       else {
         setError(data.detail || 'Signup failed')
       }
-    } catch (err) {
+    } catch {
       setError('Failed to connect to server')
     } finally {
       setLoading(false)
