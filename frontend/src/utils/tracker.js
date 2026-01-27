@@ -1,5 +1,13 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
+// Helper function to check if error is a network/fetch failure
+function isNetworkError(error) {
+  return error.name === 'TypeError' && 
+         (error.message.includes('Failed to fetch') || 
+          error.message.includes('Load failed') ||
+          error.message.includes('NetworkError'))
+}
+
 class UserTracker {
   constructor() {
     this.sessionId = this.generateSessionId()
@@ -32,7 +40,7 @@ class UserTracker {
       console.log('Tracking result:', result)
     } catch (error) {
       // Silently fail if backend is unavailable - tracking should not break the app
-      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      if (isNetworkError(error)) {
         console.warn('Analytics backend unavailable - continuing without tracking')
       } else {
         console.error('Tracking error:', error)
