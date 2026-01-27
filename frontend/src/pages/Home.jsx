@@ -37,12 +37,29 @@ export function Home() {
     }
   }
 
-  const categories = departments.map((dept, idx) => ({
-    name: dept.name,
-    image: ['🥬', '🥛', '🥩', '🍞', '🥤', '🍿'][idx] || '🛒',
-    count: `${Math.floor(Math.random() * 50 + 20)}+ items`,
-    color: ['bg-green-50', 'bg-blue-50', 'bg-red-50', 'bg-yellow-50', 'bg-purple-50', 'bg-orange-50'][idx] || 'bg-gray-50'
-  }))
+  const categories = [
+    { name: 'Frozen', image: '❄️', count: '50+ items', color: 'bg-blue-50' },
+    { name: 'Other', image: '🛒', count: '30+ items', color: 'bg-gray-50' },
+    { name: 'Bakery', image: '🍞', count: '25+ items', color: 'bg-yellow-50' },
+    { name: 'Produce', image: '🥬', count: '40+ items', color: 'bg-green-50' },
+    { name: 'Alcohol', image: '🛒', count: '15+ items', color: 'bg-purple-50' },
+    { name: 'International', image: '🛒', count: '35+ items', color: 'bg-orange-50' },
+    { name: 'Beverages', image: '🥤', count: '45+ items', color: 'bg-blue-50' },
+    { name: 'Pets', image: '🛒', count: '20+ items', color: 'bg-pink-50' },
+    { name: 'Dry Goods Pasta', image: '🛒', count: '30+ items', color: 'bg-amber-50' },
+    { name: 'Bulk', image: '🛒', count: '25+ items', color: 'bg-stone-50' },
+    { name: 'Personal Care', image: '🧴', count: '35+ items', color: 'bg-teal-50' },
+    { name: 'Meat Seafood', image: '🥩', count: '40+ items', color: 'bg-red-50' },
+    { name: 'Pantry', image: '🥫', count: '60+ items', color: 'bg-yellow-50' },
+    { name: 'Breakfast', image: '🛒', count: '25+ items', color: 'bg-orange-50' },
+    { name: 'Canned Goods', image: '🛒', count: '35+ items', color: 'bg-green-50' },
+    { name: 'Dairy Eggs', image: '🥛', count: '30+ items', color: 'bg-blue-50' },
+    { name: 'Household', image: '🧽', count: '40+ items', color: 'bg-purple-50' },
+    { name: 'Babies', image: '🛒', count: '20+ items', color: 'bg-pink-50' },
+    { name: 'Snacks', image: '🍿', count: '50+ items', color: 'bg-yellow-50' },
+    { name: 'Deli', image: '🛒', count: '15+ items', color: 'bg-red-50' },
+    { name: 'Missing', image: '🛒', count: '5+ items', color: 'bg-gray-50' }
+  ]
 
   const features = [
     { icon: Truck, title: 'Free Delivery', desc: 'On orders over $50', color: 'bg-blue-50' },
@@ -138,16 +155,18 @@ export function Home() {
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">Shop by Category</h2>
-            <p className="text-gray-600 text-lg">Explore our wide range of fresh products</p>
+            <Link to="/categories">
+              <p className="text-gray-600 text-lg hover:text-black cursor-pointer transition-colors">Explore our wide range of fresh products</p>
+            </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
             {categories.map((cat, idx) => (
-              <Card key={idx} className="group cursor-pointer hover:shadow-2xl transition-all hover:-translate-y-2 border-2 hover:border-black">
-                <CardContent className="p-8 text-center">
-                  <div className={`${cat.color} w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 text-5xl group-hover:scale-110 transition-transform`}>
+              <Card key={idx} className="group cursor-pointer hover:shadow-2xl transition-all hover:-translate-y-2 border-2 hover:border-black" onClick={() => navigate(`/products?department=${encodeURIComponent(cat.name)}`)}>
+                <CardContent className="p-4 text-center">
+                  <div className={`${cat.color} w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-3 text-3xl group-hover:scale-110 transition-transform`}>
                     {cat.image}
                   </div>
-                  <h3 className="font-bold mb-2 text-sm">{cat.name}</h3>
+                  <h3 className="font-bold mb-1 text-xs">{cat.name}</h3>
                   <p className="text-xs text-gray-500">{cat.count}</p>
                 </CardContent>
               </Card>
