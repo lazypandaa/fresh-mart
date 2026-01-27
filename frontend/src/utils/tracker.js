@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000/api'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
 class UserTracker {
   constructor() {
@@ -31,7 +31,12 @@ class UserTracker {
       const result = await response.json()
       console.log('Tracking result:', result)
     } catch (error) {
-      console.error('Tracking error:', error)
+      // Silently fail if backend is unavailable - tracking should not break the app
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.warn('Analytics backend unavailable - continuing without tracking')
+      } else {
+        console.error('Tracking error:', error)
+      }
     }
   }
 

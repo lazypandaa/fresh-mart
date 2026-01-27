@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:8000/api'
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
 class EventTracker {
   constructor() {
@@ -77,7 +77,12 @@ class EventTracker {
       
       console.log(`Session started: ${this.sessionId} for user: ${userId} (${isLoggedIn ? 'logged in' : 'anonymous'})`)
     } catch (error) {
-      console.error('Session init error:', error)
+      // Silently fail if backend is unavailable - tracking should not break the app
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.warn('Analytics backend unavailable - continuing without session tracking')
+      } else {
+        console.error('Session init error:', error)
+      }
     }
   }
 
@@ -112,7 +117,12 @@ class EventTracker {
       
       console.log('Session tracked successfully:', action)
     } catch (error) {
-      console.error('Session tracking error:', error)
+      // Silently fail if backend is unavailable - tracking should not break the app
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.warn('Analytics backend unavailable - continuing without session tracking')
+      } else {
+        console.error('Session tracking error:', error)
+      }
     }
   }
 
@@ -139,7 +149,12 @@ class EventTracker {
         })
       })
     } catch (error) {
-      console.error('Event tracking error:', error)
+      // Silently fail if backend is unavailable - tracking should not break the app
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.warn('Analytics backend unavailable - continuing without event tracking')
+      } else {
+        console.error('Event tracking error:', error)
+      }
     }
   }
 
@@ -163,7 +178,12 @@ class EventTracker {
         })
       })
     } catch (error) {
-      console.error('Cart tracking error:', error)
+      // Silently fail if backend is unavailable - tracking should not break the app
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+        console.warn('Analytics backend unavailable - continuing without cart tracking')
+      } else {
+        console.error('Cart tracking error:', error)
+      }
     }
   }
 
