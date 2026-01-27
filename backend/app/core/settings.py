@@ -6,6 +6,9 @@ class Settings(BaseSettings):
     mongodb_url: str = "mongodb+srv://freshmart_user:eASMfdl5SXeGqOfx@hack.8syianl.mongodb.net/FreshMart"
     database_name: str = "FreshMart"
     
+    # Cosmos DB
+    cosmos_mongo_url: str = ""
+    
     # JWT
     secret_key: str = "your-secret-key-here-change-in-production"
     algorithm: str = "HS256"

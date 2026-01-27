@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card'
 import { Mail, Lock, Chrome, Facebook } from 'lucide-react'
+import { tracker } from '../utils/eventTracker'
 
 export function Login() {
   const [email, setEmail] = useState('')
@@ -31,8 +32,13 @@ export function Login() {
       if (response.ok) {
         localStorage.setItem('token', data.access_token)
         localStorage.setItem('user_email', email)
-        window.location.reload() // Reload to update header
-        navigate('/')
+        localStorage.setItem('show_welcome', 'true')
+        
+        // Update tracker with new user ID
+        tracker.updateUserId()
+        tracker.trackSession('login', { email: email })
+        
+        navigate('/products')
       } else {
         setError(data.detail || 'Login failed')
       }

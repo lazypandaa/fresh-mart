@@ -5,6 +5,8 @@ class EventTracker {
     this.sessionId = this.generateSessionId()
     this.cartState = { items: 0, value: 0 }
     this.updateUserId()
+    // Don't init session immediately - wait for user state to be determined
+    setTimeout(() => this.initSession(), 100)
   }
 
   generateSessionId() {
@@ -12,18 +14,106 @@ class EventTracker {
   }
 
   updateUserId() {
-    const guestUser = JSON.parse(localStorage.getItem('guestUser') || 'null')
-    if (guestUser) {
-      this.userId = guestUser.guest_id || guestUser.email.split('@')[0] // Use guest_0002 instead of guest_0002@guest.com
-    } else {
-      const email = localStorage.getItem('user_email')
-      this.userId = email || 'anonymous_' + this.sessionId
+    // First check for logged-in user email
+    const userEmail = localStorage.getItem('user_email')
+    console.log('Checking user_email from localStorage:', userEmail)
+    
+    if (userEmail) {
+      this.userId = userEmail
+      console.log('Set userId to logged-in email:', this.userId)
+      return
     }
+    
+    // Then check for guest user
+    const guestUser = JSON.parse(localStorage.getItem('guestUser') || 'null')
+    console.log('Checking guestUser from localStorage:', guestUser)
+    
+    if (guestUser) {
+      this.userId = guestUser.guest_id || guestUser.email.split('@')[0]
+      console.log('Set userId to guest:', this.userId)
+      return
+    }
+    
+    // Default to anonymous
+    this.userId = 'anonymous_' + this.sessionId
+    console.log('Set userId to anonymous:', this.userId)
   }
 
   getUserId() {
     this.updateUserId() // Always get fresh user ID
     return this.userId
+  }
+
+  async initSession() {
+    try {
+      const userId = this.getUserId()
+      const isLoggedIn = !userId.startsWith('anonymous_')
+      
+      console.log('Session init - userId:', userId, 'isLoggedIn:', isLoggedIn)
+      
+      const payload = {
+        user_id: isLoggedIn ? userId : null,
+        session_id: this.sessionId,
+        action: 'start',
+        data: {
+          user_agent: navigator.userAgent,
+          url: window.location.href,
+          timestamp: new Date().toISOString(),
+          user_type: isLoggedIn ? 'logged_in' : 'anonymous'
+        }
+      }
+      
+      console.log('Sending session init payload:', payload)
+      
+      const response = await fetch(`${API_BASE}/track/session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      console.log(`Session started: ${this.sessionId} for user: ${userId} (${isLoggedIn ? 'logged in' : 'anonymous'})`)
+    } catch (error) {
+      console.error('Session init error:', error)
+    }
+  }
+
+  async trackSession(action, data = {}) {
+    try {
+      const userId = this.getUserId()
+      const isLoggedIn = !userId.startsWith('anonymous_')
+      
+      const payload = {
+        user_id: isLoggedIn ? userId : null,
+        session_id: this.sessionId,
+        action: action,
+        data: {
+          url: window.location.href,
+          timestamp: new Date().toISOString(),
+          user_type: isLoggedIn ? 'logged_in' : 'anonymous',
+          ...data
+        }
+      }
+      
+      console.log('Sending session payload:', payload)
+      
+      const response = await fetch(`${API_BASE}/track/session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      console.log('Session tracked successfully:', action)
+    } catch (error) {
+      console.error('Session tracking error:', error)
+    }
   }
 
   updateCartState() {
@@ -98,7 +188,21 @@ class EventTracker {
 
   trackPurchase(orderData) {
     this.trackEvent('purchase', null, orderData)
+    this.trackSession('purchase', orderData)
+  }
+
+  trackPageView(page) {
+    this.trackSession('page_view', { page })
+  }
+
+  endSession() {
+    this.trackSession('end')
   }
 }
 
 export const tracker = new EventTracker()
+
+// Track page unload
+window.addEventListener('beforeunload', () => {
+  tracker.endSession()
+})

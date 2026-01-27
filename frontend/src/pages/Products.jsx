@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
-import { Star, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Star, ShoppingCart, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { tracker } from '../utils/eventTracker'
 
@@ -15,12 +15,29 @@ export function Products() {
   const [currentPage, setCurrentPage] = useState(1)
   const [hasMore, setHasMore] = useState(false)
   const [total, setTotal] = useState(0)
+  const [showWelcome, setShowWelcome] = useState(false)
   const { addToCart } = useCart()
   const itemsPerPage = 20
 
   useEffect(() => {
     fetchDepartments()
+    
+    // Check if user just logged in
+    const shouldShowWelcome = localStorage.getItem('show_welcome')
+    if (shouldShowWelcome === 'true') {
+      setShowWelcome(true)
+      localStorage.removeItem('show_welcome')
+    }
   }, [])
+
+  const closeWelcome = () => {
+    setShowWelcome(false)
+  }
+
+  const getUserName = () => {
+    const email = localStorage.getItem('user_email')
+    return email ? email.split('@')[0] : 'User'
+  }
 
   useEffect(() => {
     const searchQuery = searchParams.get('search')
@@ -103,6 +120,28 @@ export function Products() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Welcome Popup */}
+      {showWelcome && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 text-center shadow-2xl">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">🎉</span>
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Welcome {getUserName()}!</h2>
+            <p className="text-gray-600 mb-6">You're successfully logged in. Start shopping for fresh groceries!</p>
+            <Button onClick={closeWelcome} className="w-full">
+              Start Shopping
+            </Button>
+            <button 
+              onClick={closeWelcome}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div className="container mx-auto px-6 py-12">
         <div className="mb-12">
           <h1 className="text-5xl font-bold mb-4">
