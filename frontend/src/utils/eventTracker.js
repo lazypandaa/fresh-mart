@@ -18,7 +18,7 @@ class EventTracker {
     const userEmail = localStorage.getItem('user_email')
     console.log('Checking user_email from localStorage:', userEmail)
     
-    if (userEmail) {
+    if (userEmail && userEmail !== 'null' && userEmail !== '') {
       this.userId = userEmail
       console.log('Set userId to logged-in email:', this.userId)
       return
@@ -28,9 +28,15 @@ class EventTracker {
     const guestUser = JSON.parse(localStorage.getItem('guestUser') || 'null')
     console.log('Checking guestUser from localStorage:', guestUser)
     
-    if (guestUser) {
-      this.userId = guestUser.guest_id || guestUser.email.split('@')[0]
+    if (guestUser && guestUser.guest_id) {
+      this.userId = guestUser.guest_id
       console.log('Set userId to guest:', this.userId)
+      return
+    }
+    
+    if (guestUser && guestUser.email) {
+      this.userId = guestUser.email.split('@')[0]
+      console.log('Set userId to guest email prefix:', this.userId)
       return
     }
     
@@ -48,32 +54,27 @@ class EventTracker {
     try {
       const userId = this.getUserId()
       const isLoggedIn = !userId.startsWith('anonymous_')
+      const finalUserId = isLoggedIn ? userId : null
       
-      console.log('Session init - userId:', userId, 'isLoggedIn:', isLoggedIn)
+      console.log('Session init - userId:', userId, 'isLoggedIn:', isLoggedIn, 'sending:', finalUserId)
       
-      const payload = {
-        user_id: isLoggedIn ? userId : null,
-        session_id: this.sessionId,
-        action: 'start',
-        data: {
-          user_agent: navigator.userAgent,
-          url: window.location.href,
-          timestamp: new Date().toISOString(),
-          user_type: isLoggedIn ? 'logged_in' : 'anonymous'
-        }
-      }
-      
-      console.log('Sending session init payload:', payload)
-      
-      const response = await fetch(`${API_BASE}/track/session`, {
+      // Use the working events endpoint
+      await fetch(`${API_BASE}/events/track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          user_id: finalUserId,
+          session_id: this.sessionId,
+          event_type: 'session_start',
+          product_id: null,
+          data: {
+            user_agent: navigator.userAgent,
+            url: window.location.href,
+            timestamp: new Date().toISOString(),
+            user_type: isLoggedIn ? 'logged_in' : 'anonymous'
+          }
+        })
       })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
       
       console.log(`Session started: ${this.sessionId} for user: ${userId} (${isLoggedIn ? 'logged in' : 'anonymous'})`)
     } catch (error) {
@@ -85,32 +86,29 @@ class EventTracker {
     try {
       const userId = this.getUserId()
       const isLoggedIn = !userId.startsWith('anonymous_')
+      const finalUserId = isLoggedIn ? userId : null
       
-      const payload = {
-        user_id: isLoggedIn ? userId : null,
-        session_id: this.sessionId,
-        action: action,
-        data: {
-          url: window.location.href,
-          timestamp: new Date().toISOString(),
-          user_type: isLoggedIn ? 'logged_in' : 'anonymous',
-          ...data
-        }
-      }
+      console.log(`Tracking session via events: ${action} for user: ${userId} (sending: ${finalUserId})`)
       
-      console.log('Sending session payload:', payload)
-      
-      const response = await fetch(`${API_BASE}/track/session`, {
+      // Use the working events endpoint instead
+      await fetch(`${API_BASE}/events/track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          user_id: finalUserId,
+          session_id: this.sessionId,
+          event_type: `session_${action}`,
+          product_id: null,
+          data: {
+            url: window.location.href,
+            timestamp: new Date().toISOString(),
+            user_type: isLoggedIn ? 'logged_in' : 'anonymous',
+            ...data
+          }
+        })
       })
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-      
-      console.log('Session tracked successfully:', action)
+      console.log('Session tracked successfully via events:', action)
     } catch (error) {
       console.error('Session tracking error:', error)
     }
@@ -125,13 +123,15 @@ class EventTracker {
   async trackEvent(eventType, productId = null, data = {}) {
     try {
       const userId = this.getUserId()
-      console.log(`Tracking event: ${eventType} for user: ${userId}`)
+      // Don't send anonymous users as user_id, send null instead
+      const finalUserId = userId.startsWith('anonymous_') ? null : userId
+      console.log(`Tracking event: ${eventType} for user: ${userId} (sending: ${finalUserId})`)
       
       await fetch(`${API_BASE}/events/track`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: finalUserId,
           session_id: this.sessionId,
           event_type: eventType,
           product_id: productId,
@@ -147,13 +147,15 @@ class EventTracker {
     try {
       this.updateCartState()
       const userId = this.getUserId()
-      console.log(`Tracking cart event: ${action} for user: ${userId}`)
+      // Don't send anonymous users as user_id, send null instead
+      const finalUserId = userId.startsWith('anonymous_') ? null : userId
+      console.log(`Tracking cart event: ${action} for user: ${userId} (sending: ${finalUserId})`)
       
       await fetch(`${API_BASE}/events/cart`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: finalUserId,
           session_id: this.sessionId,
           action: action,
           product_id: productId,
